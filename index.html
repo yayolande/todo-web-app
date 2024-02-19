@@ -1,0 +1,147 @@
+<script src='./assets/vue.global.js'></script>
+<script src='./assets/vue-router.global.js'></script>
+<link rel="stylesheet" href="assets/bulma.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #ECF0F3;
+    // background-color: #C4CFCF;
+  }
+
+  navbar {
+    border-bottom: solid 1px #E1E4F1;
+  }
+</style>
+
+
+<nav class='navbar mb-6 py-3'>
+  <div class='container is-size-5'>
+    <div class='navbar-brand ml-1'>
+      <img src='./assets/bulma-logo.png' width='112' height='28'>
+    </div>
+    <div class='navbar-menu'>
+      <div class='navbar-start'>
+        <a class='navbar-item'>Home</a>
+        <a class='navbar-item'>Home</a>
+        <a class='navbar-item'>Home</a>
+      </div>
+      <div class='navbar-end'>
+        <a class='navbar-item'>Login</a>
+        <a class='navbar-item'>Login</a>
+        <a class='navbar-item'>Login</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<div class='container'>
+  <div class='columns is-centered'>
+    <form class='column is-4 box section'>
+      <div class='field is-horizontal'>
+        <div class='field-label'>
+          <label class='label' for='input-username'>Username</label>
+        </div>
+        <div class='field-body'>
+          <div class='field'>
+            <div class='control is-expanded has-icons-left'>
+              <input class='input' v-model='inputUsername' id='input-username' type='text' placeholder='Username'>
+              <span class='icon is-left'>
+                <i class='fas fa-user'></i>
+              </span>
+            </div>
+            <p class='help'>Chose an unique username</p>
+          </div>
+        </div>
+      </div>
+
+      <div class='field is-horizontal'>
+        <div class='field-label'>
+          <label class='label' for='input-password'>Password</label>
+        </div>
+        <div class='field-body'>
+          <div class='field'>
+            <div class='control is-expanded has-icons-left'>
+              <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' />
+              <span class='icon is-left'>
+                <i class='fas fa-key'></i>
+              </span>
+              <p class='help'>Enter correct Password</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class='button is-primary is-fullwidth mt-5'>Login</button>
+      <p class='has-text-centered mt-1'>Don't have an account ? <a>Register Now</a></p>
+    </form>
+  </div>
+</div>
+
+<component-registration></component-registration>
+
+
+
+<script>
+  const componentRegistration = {
+    data() {
+      return {
+
+      }
+    },
+    template: `
+      <div class='container'>
+        <div class='columns is-centered'>
+          <form class='column is-4 box section'>
+            <div class='field is-horizontal'>
+              <div class='field-label'>
+                <label class='label' for='input-username'>Username</label>
+              </div>
+              <div class='field-body'>
+                <div class='field'>
+                  <div class='control'>
+                    <input class='input' v-model='inputUsername' id='input-username' type='text' placeholder='Username'>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class='field is-horizontal'>
+              <div class='field-label'>
+                <label class='label' for='input-password'>Password</label>
+              </div>
+              <div class='field-body'>
+                <div class='field'>
+                  <div class='control'>
+                    <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class='button is-primary is-fullwidth mt-5'>Register</button>
+          </form>
+        </div>
+      </div>
+    `,
+  }
+
+  const app = Vue.createApp({
+    components: {
+      'component-registration': componentRegistration,
+    },
+    data() {
+      return {
+        inputUsername: 'Memosa',
+        inputPassword: '',
+      }
+    },
+
+  })
+
+  app.mount('body')
+
+</script>
