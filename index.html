@@ -3,6 +3,9 @@
 <link rel="stylesheet" href="assets/bulma.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+<script src="https://unpkg.com/vue-demi"></script>
+<script src="https://unpkg.com/pinia"></script>
+
 <style>
   body {
     margin: 0;
@@ -38,58 +41,75 @@
   </div>
 </nav>
 
-<div class='container'>
-  <div class='columns is-centered'>
-    <form class='column is-4 box section'>
-      <div class='field is-horizontal'>
-        <div class='field-label'>
-          <label class='label' for='input-username'>Username</label>
-        </div>
-        <div class='field-body'>
-          <div class='field'>
-            <div class='control is-expanded has-icons-left'>
-              <input class='input' v-model='inputUsername' id='input-username' type='text' placeholder='Username'>
-              <span class='icon is-left'>
-                <i class='fas fa-user'></i>
-              </span>
-            </div>
-            <p class='help'>Chose an unique username</p>
-          </div>
-        </div>
-      </div>
+<p class='block'>
+  <router-link to='/login'>Go to Login Page</router-link>
+  <br>
+  <router-link to='/register'>Go to Registration Page</router-link>
+</p>
 
-      <div class='field is-horizontal'>
-        <div class='field-label'>
-          <label class='label' for='input-password'>Password</label>
-        </div>
-        <div class='field-body'>
-          <div class='field'>
-            <div class='control is-expanded has-icons-left'>
-              <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' />
-              <span class='icon is-left'>
-                <i class='fas fa-key'></i>
-              </span>
-              <p class='help'>Enter correct Password</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button class='button is-primary is-fullwidth mt-5'>Login</button>
-      <p class='has-text-centered mt-1'>Don't have an account ? <a>Register Now</a></p>
-    </form>
-  </div>
-</div>
-
-<component-registration></component-registration>
-
+<router-view></router-view>
 
 
 <script>
-  const componentRegistration = {
+  let rootVueApp = {}
+
+  const componentLogin = {
     data() {
       return {
 
+      }
+    },
+    template: `
+      <div class='container'>
+        <div class='columns is-centered'>
+          <form class='column is-4 box section'>
+            <div class='field is-horizontal'>
+              <div class='field-label'>
+                <label class='label' for='input-username'>Username</label>
+              </div>
+              <div class='field-body'>
+                <div class='field'>
+                  <div class='control is-expanded has-icons-left'>
+                    <input class='input' v-model='inputUsername' id='input-username' type='text' placeholder='Username'>
+                    <span class='icon is-left'>
+                      <i class='fas fa-user'></i>
+                    </span>
+                  </div>
+                  <p class='help'>Chose an unique username</p>
+                </div>
+              </div>
+            </div>
+
+            <div class='field is-horizontal'>
+              <div class='field-label'>
+                <label class='label' for='input-password'>Password</label>
+              </div>
+              <div class='field-body'>
+                <div class='field'>
+                  <div class='control is-expanded has-icons-left'>
+                    <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' />
+                    <span class='icon is-left'>
+                      <i class='fas fa-key'></i>
+                    </span>
+                    <p class='help'>Enter correct Password</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class='button is-primary is-fullwidth mt-5'>Login</button>
+            <p class='has-text-centered mt-1'>Don't have an account ? <a>Register Now</a></p>
+          </form>
+        </div>
+      </div>
+    `,
+  }
+
+  const componentRegistration = {
+    data() {
+      return {
+        inputUsername: 'Meriosa',
+        inputPassword: 'secret',
       }
     },
     template: `
@@ -122,16 +142,50 @@
               </div>
             </div>
 
-            <button class='button is-primary is-fullwidth mt-5'>Register</button>
+            <button class='button is-primary is-fullwidth mt-5' @click='registration'>Register</button>
           </form>
         </div>
       </div>
     `,
+    methods: {
+      registration: function () {
+        console.log(`username: ${this.inputUsername} ::: password: ${this.inputPassword}`)
+        console.log(`This : `, this)
+        console.log(`This.$root : `, this.$root)
+        console.log(`This.$data : `, this.$data)
+        rootVueApp = this
+      },
+    }
   }
+
+  routes = [
+    {path: '/login', component: componentLogin},
+    {path: '/register', component: componentRegistration},
+  ]
+
+  const router = VueRouter.createRouter({
+    history: VueRouter.createWebHashHistory(),
+    routes,
+  })
+
+  const pinia = Pinia.createPinia()
+
+  const useVarStore = Pinia.defineStore('var', {
+    state: () => ({count: 0, name: 'Eduardo'}),
+    getters: {
+      doubleCount(state) {return state.count * 2},
+    },
+    actions: {
+      increment() {
+        this.count++
+      },
+    },
+  })
 
   const app = Vue.createApp({
     components: {
       'component-registration': componentRegistration,
+      'component-login': componentLogin,
     },
     data() {
       return {
@@ -139,9 +193,44 @@
         inputPassword: '',
       }
     },
-
+    setup() {
+      // const varStore = useVarStore()
+      // const menuStore = useVarStore()
+      // console.log('varStore: ', varStore)
+      // console.log('menuStore: ', menuStore)
+      // return {varStore}
+    },
   })
 
+  app.use(router)
+  app.use(pinia)
+
   app.mount('body')
+  const varStore = useVarStore()
+
+  // let useVarStore = Pinia.defineStore('var', () => {
+  //   const count = ref('0')
+  //   const name = ref('Eduardo')
+
+  //   const doubleCount = computed(() => count.value * 2)
+  //   function increment() {
+  //     count.value++
+  //   }
+
+  //   return {count, name, doubleCount, increment}
+  // })
+
+  console.log('Pinia : ', Pinia)
+  console.log('Pinia : ', Pinia.createPinia)
+  // console.log('Pinia useVarStore: ', useVarStore)
+  // console.log('Pinia useVarStore (USED): ', useVarStore())
+  // console.log(app)
+  // console.log(app.$component)
+  // console.log(app._component.template)
+  console.log('===============================')
+  console.log('store.count = ', varStore.count)
+  console.log('varStore.name = ', varStore.name)
+  console.log('varStore.increment() = ', varStore.increment())
+  console.log('store.count = ', varStore.count)
 
 </script>
