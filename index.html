@@ -156,8 +156,8 @@
 
     <div class='todo-task' v-for="todo in todos">
       <div class='todo-content'>
-        <p class='todo-title'>Cleaning House With Soap</p>
-        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
+        <p class='todo-title'>{{ todo.title }}</p>
+        <p class='todo-subtitle'>{{ new Date (todo.date_epoch * 1000).toUTCString() }}</p>
       </div>
       <div class='todo-right'>
         <button class='button is-outlined is-danger' v-on:click="deleteTodo">
@@ -326,7 +326,7 @@
       return {
         inputUsername: 'Memosa',
         inputPassword: '',
-        todos: [, ,],
+        todos: [],
       }
     },
     methods: {
@@ -341,8 +341,13 @@
       console.log('component mounted')
 
       const url = `http://localhost:2200/api/v1/todo`
-      let response = await fetch(url)
+      let response = await fetch(url, {
+        headers: {
+          Authorization: "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I"
+        }
+      })
       let data = await response.json()
+      this.todos = data.todos
 
       console.log(data)
       console.log('================ End mounted() hook ===============')
