@@ -18,6 +18,74 @@
   navbar {
     border-bottom: solid 1px #E1E4F1;
   }
+
+  .box-shadow {
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+  }
+
+  hr {
+    background-color: #ccc;
+  }
+
+  .todo-task.completed {
+    // color: #ccc !important;
+    // border-color: #ddd !important;
+    opacity: .4;
+  }
+
+  .todo-task {
+    border: 1px solid rgba(0, 0, 0, 0.41);
+    border-radius: 7px;
+    padding: 10px 35px;
+    padding-right: 10px;
+    margin: 30px 100px;
+    display: flex;
+    align-items: center;
+  }
+
+  .todo-content {
+    flex: 1;
+  }
+
+  .todo-right {
+    // display: none
+  }
+
+  .todo-task:hover .todo-right {
+    display: block;
+  }
+
+  .todo-right>button {
+    margin-left: 5px;
+    background-color: inherit;
+    border: 0;
+  }
+
+  .todo-right>button.trash:hover {
+    background-color: #FFDCDC;
+  }
+
+  .todo-right>button.trash:active {
+    box-shadow: 1px 2px 4px #FFDCDC;
+  }
+
+  .todo-right>button.completed:hover {
+    background-color: #DCEFDC;
+  }
+
+  .todo-right>button.completed:active {
+    box-shadow: 1px 2px 4px #DCEFDC;
+  }
+
+
+  .todo-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .todo-subtitle {
+    font-style: italic;
+  }
 </style>
 
 
@@ -46,6 +114,54 @@
   <br>
   <router-link to='/register'>Go to Registration Page</router-link>
 </p>
+
+<div class='container is-max-desktop has-background-white box-shadow'>
+  <div class='section'>
+    <h1 class='title is-2 has-text-centered'>Upcoming Events</h1>
+    <hr>
+
+    <div class='todo-task'>
+      <div class='todo-content'>
+        <p class='todo-title'>Cleaning House With Soap</p>
+        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
+      </div>
+      <div class='todo-right'>
+        <button class='icon is-large trash'>
+          <i class='fa fa-trash fa-xl'></i>
+        </button>
+        <button class='icon is-large completed'>
+          <i class='fa fa-check fa-xl'></i>
+        </button>
+      </div>
+    </div>
+
+    <div class='todo-task'>
+      <div class='todo-content'>
+        <p class='todo-title'>Cleaning House With Soap</p>
+        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
+      </div>
+      <div class='todo-right'>
+        <button class='button is-outlined is-danger'>
+          <span class='icon'>
+            <i class='fa fa-trash'></i>
+          </span>
+        </button>
+        <button class='button is-outlined is-success'>
+          <span class='icon is-large'>
+            <i class='fa fa-check fa-xl'></i>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class='media'>
+      <div class='media-content'>
+        <h2 class='title'>Cleaning House With Soap</h2>
+        <h3 class='subtitle'>Thu. 05, Dec. 2023</h3>
+      </div>
+    </div>
+  </div>
+</div>
 
 <router-view></router-view>
 
