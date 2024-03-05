@@ -89,6 +89,25 @@ func openDB() *gorm.DB {
 }
 
 func setupRoute(app *fiber.App) {
+
+	app.Use(func(c *fiber.Ctx) error {
+		log.Println("Hello From CORS policy manager handler !")
+
+		method := c.Route().Method
+		log.Println("Method: ", method)
+		c.Set("Access-Control-Allow-Origin", "*")
+		c.Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		c.Set("Access-Control-Allow-Credentials", "true")
+		c.Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+
+		if method == "OPTIONS" {
+			log.Println("OPTIONS is OK")
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+
+		return c.Next()
+	})
+
 	app.Static("/", "../")
 
 	app.Get("/", func(c *fiber.Ctx) error {
