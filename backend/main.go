@@ -13,10 +13,20 @@ import (
 	"gorm.io/gorm"
 )
 
+type Todo struct {
+	Id          int    `json:"id"`
+	Title       string `json:"title"`
+	DateEpoch   int    `json:"date_epoch"`
+	IsCompleted bool   `json:"is_completed"`
+	IsDeleted   bool   `json:"is_deleted"`
+	UserId      int    `json:"user_id"`
+	User        User   `json:"user" gorm:"foreignKey:UserId"`
+}
+
 type User struct {
 	Id       int    `json:"id"`
 	Username string `json:"username"`
-	Password string `json:"password"`
+	Password string `json:"password,omitempty"`
 }
 
 func (u User) IsEmpty() bool {
@@ -73,6 +83,7 @@ func openDB() *gorm.DB {
 	}
 
 	db.AutoMigrate(&User{})
+	// db.AutoMigrate(&Todo{})
 
 	return db
 }
@@ -161,11 +172,72 @@ func setupRoute(app *fiber.App) {
 	})
 
 	api.Use(jwtMiddlewareProtect)
-	api.Get("/empty", func(c *fiber.Ctx) error {
+
+	api.Get("/todo", func(c *fiber.Ctx) error {
+		var userId int = getUserIdFromMiddlewareContext(c)
+
+		todos := []Todo{}
+		err := gormDB.Where("user_id = ?", userId).Find(&todos).Error
+
+		if err != nil {
+			log.Println(c.Route().Path, " ==> ", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
 		return c.Status(fiber.StatusOK).JSON(fiber.Map{
-			"message": "OK",
+			"todos": todos,
 		})
 	})
+
+	api.Post("/todo", func(c *fiber.Ctx) error {
+		inboundTodo := Todo{}
+
+		if err := c.BodyParser(&inboundTodo); err != nil {
+			log.Println(c.Route().Path, " --> ", err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		inboundTodo.UserId = getUserIdFromMiddlewareContext(c)
+		err := gormDB.Create(&inboundTodo).Error
+
+		if err != nil {
+			log.Println(c.Route().Path, " --> ", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"todo": inboundTodo,
+		})
+	})
+
+	api.Delete("/todo/:id<int>", func(c *fiber.Ctx) error {
+		userId := getUserIdFromMiddlewareContext(c)
+		todoId := c.Params("id", "-1")
+
+		// err := gormDB.Delete(&Todo{}, todoId).Error
+		err := gormDB.
+			Where("user_id = ? AND id = ?", userId, todoId).
+			Delete(&Todo{}).
+			Error
+
+		if err != nil {
+			log.Println(c.Route().Path, " --> ", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"id_deleted": todoId,
+		})
+	})
+
 }
 
 func jwtMiddlewareProtect(c *fiber.Ctx) error {
@@ -193,7 +265,7 @@ func jwtMiddlewareProtect(c *fiber.Ctx) error {
 	// Validate the token
 	claims := &struct {
 		jwt.RegisteredClaims
-		UserId int
+		UserId int `json:"user_id"`
 	}{}
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
@@ -209,4 +281,10 @@ func jwtMiddlewareProtect(c *fiber.Ctx) error {
 	c.Locals("user_id", claims.UserId)
 
 	return c.Next()
+}
+
+func getUserIdFromMiddlewareContext(c *fiber.Ctx) int {
+	var userId int = c.Locals("user_id").(int)
+
+	return userId
 }
