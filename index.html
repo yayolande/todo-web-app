@@ -141,12 +141,31 @@
         <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
       </div>
       <div class='todo-right'>
-        <button class='button is-outlined is-danger'>
+        <button class='button is-outlined is-danger' v-on:click="deleteTodo">
           <span class='icon'>
             <i class='fa fa-trash'></i>
           </span>
         </button>
-        <button class='button is-outlined is-success'>
+        <button class='button is-outlined is-success' @click="console.log('hello')">
+          <span class='icon is-large'>
+            <i class='fa fa-check fa-xl'></i>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <div class='todo-task' v-for="todo in todos">
+      <div class='todo-content'>
+        <p class='todo-title'>Cleaning House With Soap</p>
+        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
+      </div>
+      <div class='todo-right'>
+        <button class='button is-outlined is-danger' v-on:click="deleteTodo">
+          <span class='icon'>
+            <i class='fa fa-trash'></i>
+          </span>
+        </button>
+        <button class='button is-outlined is-success' @click="console.log('hello')">
           <span class='icon is-large'>
             <i class='fa fa-check fa-xl'></i>
           </span>
@@ -307,7 +326,26 @@
       return {
         inputUsername: 'Memosa',
         inputPassword: '',
+        todos: [, ,],
       }
+    },
+    methods: {
+      deleteTodo(el) {
+        console.log(`deleteTodo --> ${el}`, el)
+      },
+      completeTodo(el) {
+        console.log('complete')
+      }
+    },
+    async mounted() {
+      console.log('component mounted')
+
+      const url = `http://localhost:2200/api/v1/todo`
+      let response = await fetch(url)
+      let data = await response.json()
+
+      console.log(data)
+      console.log('================ End mounted() hook ===============')
     },
     setup() {
       // const varStore = useVarStore()
