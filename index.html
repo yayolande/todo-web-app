@@ -7,11 +7,16 @@
 <script src="https://unpkg.com/pinia"></script>
 
 <style>
+  html {
+    background-color: #ECF0F3;
+  }
+
   body {
     margin: 0;
     padding: 0;
-    height: 100%;
+    min-height: 100%;
     background-color: #ECF0F3;
+    padding: 0 .6rem;
     // background-color: #C4CFCF;
   }
 
@@ -27,7 +32,7 @@
     background-color: #ccc;
   }
 
-  .todo-task.completed {
+  .todo-task-completed {
     // color: #ccc !important;
     // border-color: #ddd !important;
     opacity: .4;
@@ -115,11 +120,52 @@
   <router-link to='/register'>Go to Registration Page</router-link>
 </p>
 
-<div class='container is-max-desktop has-background-white box-shadow'>
+<div class='container is-max-desktop has-background-white box-shadow block'>
+  <div class='section'>
+    <input type='hidden' name='id' value='0'>
+    <div class='field is-horizontal'>
+      <div class='field-label is-normal'>
+        <label for='input-todo-title' class='label'>Task Title</lable>
+      </div>
+      <div class='field-body'>
+        <div class='field is-expanded'>
+          <div class='control'>
+            <input class='input' id='input-todo-title' v-model="inputTodoTitle">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class='field is-horizontal'>
+      <div class='field-label is-normal'>
+        <label for='input-todo-date' class='label'>Date</label>
+      </div>
+      <div class='field-body'>
+        <div class='field'>
+          <div class='control'>
+            <input type='datetime-local' class='input' v-model="inputTodoDate">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class='columns is-centered'>
+      <div class='column is-2'>
+        <button class='button is-primary is-rounded is-fullwidth' @click="createTodo">Create</button>
+      </div>
+      <div class='column is-2'>
+        <button class='button is-rounded is-fullwidth' @click='clearTodoFields'>Clear</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class='container is-max-desktop has-background-white box-shadow mb-6'>
   <div class='section'>
     <h1 class='title is-2 has-text-centered'>Upcoming Events</h1>
     <hr>
 
+    <!--
     <div class='todo-task'>
       <div class='todo-content'>
         <p class='todo-title'>Cleaning House With Soap</p>
@@ -134,49 +180,25 @@
         </button>
       </div>
     </div>
+    -->
 
-    <div class='todo-task'>
-      <div class='todo-content'>
-        <p class='todo-title'>Cleaning House With Soap</p>
-        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
-      </div>
-      <div class='todo-right'>
-        <button class='button is-outlined is-danger' v-on:click="deleteTodo">
-          <span class='icon'>
-            <i class='fa fa-trash'></i>
-          </span>
-        </button>
-        <button class='button is-outlined is-success' @click="console.log('hello')">
-          <span class='icon is-large'>
-            <i class='fa fa-check fa-xl'></i>
-          </span>
-        </button>
-      </div>
-    </div>
-
-    <div class='todo-task' v-for="todo in todos">
+    <div :class='{ "todo-task-completed": todo.is_completed }' class='todo-task' v-for="todo in todos" :key="todo.id">
+      <input type='hidden' :value='todo.id'>
       <div class='todo-content'>
         <p class='todo-title'>{{ todo.title }}</p>
         <p class='todo-subtitle'>{{ new Date (todo.date_epoch * 1000).toUTCString() }}</p>
       </div>
       <div class='todo-right'>
-        <button class='button is-outlined is-danger' v-on:click="deleteTodo">
+        <button class='button is-outlined is-danger' v-on:click="el => deleteTodo(el, todo.id)">
           <span class='icon'>
             <i class='fa fa-trash'></i>
           </span>
         </button>
-        <button class='button is-outlined is-success' @click="console.log('hello')">
+        <button class='button is-outlined is-success' @click="updateTodo(todo)">
           <span class='icon is-large'>
             <i class='fa fa-check fa-xl'></i>
           </span>
         </button>
-      </div>
-    </div>
-
-    <div class='media'>
-      <div class='media-content'>
-        <h2 class='title'>Cleaning House With Soap</h2>
-        <h3 class='subtitle'>Thu. 05, Dec. 2023</h3>
       </div>
     </div>
   </div>
@@ -324,32 +346,105 @@
     },
     data() {
       return {
+        userToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I',
         inputUsername: 'Memosa',
         inputPassword: '',
+        inputTodoTitle: '',
+        inputTodoDate: new Date().toISOString().split(".")[0],
         todos: [],
       }
     },
     methods: {
-      deleteTodo(el) {
+      async deleteTodo(el, todoId) {
         console.log(`deleteTodo --> ${el}`, el)
+        console.log('todo id ==> ', todoId)
+
+        const url = `http://localhost:2200/api/v1/todo/${todoId}`
+        let res = await fetch(url, {
+          method: "DELETE",
+          headers: {
+            Authorization: `BEARER ${this.userToken}`
+          }
+        })
+        let data = await res.json()
+        console.log('DELETE ---> ', data)
+
+        this.fetchAllTodos()
       },
-      completeTodo(el) {
-        console.log('complete')
-      }
+      async updateTodo(todoProxy) {
+        let todo = {
+          "id": todoProxy.id,
+          "title": todoProxy.title,
+          "date_epoch": todoProxy.date_epoch,
+          "is_completed": todoProxy.is_completed,
+          "is_deleted": todoProxy.is_deleted,
+          "user_id": todoProxy.user_id
+        }
+
+        todo.is_completed = !todo.is_completed
+        const url = `http://localhost:2200/api/v1/todo/${todo.id}`
+
+        let res = await fetch(url, {
+          method: "PUT",
+          headers: {
+            Authorization: `BEARER ${this.userToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(todo),
+        })
+
+        let data = await res.json()
+        console.log('updateTodo ---> ', data)
+
+        this.fetchAllTodos()
+      },
+      async createTodo() {
+        const title = this.inputTodoTitle
+        const date_epoch = Date.parse(this.inputTodoDate) / 1000
+        const url = `http://localhost:2200/api/v1/todo`
+
+        let payload = {
+          title,
+          date_epoch,
+        }
+
+        let res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `BEARER ${this.userToken}`,
+          },
+          body: JSON.stringify(payload),
+        })
+        let data = await res.json()
+        console.log('create todo : ', data)
+
+        this.clearTodoFields()
+        this.fetchAllTodos()
+      },
+      clearTodoFields() {
+        this.inputTodoTitle = ''
+        this.inputTodoDate = (new Date().toISOString()).split(".")[0]
+      },
+      async fetchAllTodos() {
+
+        const url = `http://localhost:2200/api/v1/todo`
+        let response = await fetch(url, {
+          headers: {
+            Authorization: "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I"
+          }
+        })
+        let data = await response.json()
+        this.todos = data.todos
+
+        console.log(data)
+      },
     },
     async mounted() {
       console.log('component mounted')
 
-      const url = `http://localhost:2200/api/v1/todo`
-      let response = await fetch(url, {
-        headers: {
-          Authorization: "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I"
-        }
-      })
-      let data = await response.json()
-      this.todos = data.todos
+      this.fetchAllTodos()
 
-      console.log(data)
       console.log('================ End mounted() hook ===============')
     },
     setup() {
