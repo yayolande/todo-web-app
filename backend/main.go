@@ -235,15 +235,68 @@ func setupRoute(app *fiber.App) {
 		})
 	})
 
+	api.Put("/todo/:id<int>", func(c *fiber.Ctx) error {
+		todoId, err := c.ParamsInt("id", -1)
+		if err != nil {
+			log.Println(c.Route().Path, " = ", todoId, " --> ", err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		todoInbound := Todo{}
+		if err := c.BodyParser(&todoInbound); err != nil {
+			log.Println(c.Route().Path, " :: BodyParser() --> ", err.Error())
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		err = gormDB.First(&Todo{}, todoId).Error
+		if err != nil {
+			log.Println(c.Route().Path, " :: gorm.First() --> ", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		userId := getUserIdFromMiddlewareContext(c)
+		if userId != todoInbound.UserId {
+			errString := "[Unauthorized] The todo your tried to modify belong to another user"
+			log.Println(c.Route().Path, " --> ", errString)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"message": errString,
+			})
+		}
+
+		err = gormDB.Save(&todoInbound).Error
+		if err != nil {
+			log.Println(c.Route().Path, " :: gorm.Save() --> ", err.Error())
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"message": err.Error(),
+			})
+		}
+
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"todo": todoInbound,
+		})
+	})
+
 	api.Delete("/todo/:id<int>", func(c *fiber.Ctx) error {
 		userId := getUserIdFromMiddlewareContext(c)
 		todoId := c.Params("id", "-1")
 
 		// err := gormDB.Delete(&Todo{}, todoId).Error
+		// todoToDelete := Todo {
+		// Id: todoId,
+		// UserId: userId,
+		// }
+
 		err := gormDB.
-			Where("user_id = ? AND id = ?", userId, todoId).
-			Delete(&Todo{}).
+			Where("user_id = ?", userId).
+			Delete(&Todo{}, todoId).
 			Error
+			// err := gormDB.Delete(&todoToDelete).Error
 
 		if err != nil {
 			log.Println(c.Route().Path, " --> ", err.Error())
