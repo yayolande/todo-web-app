@@ -12,9 +12,11 @@
   }
 
   body {
+    display: flex;
+    flex-direction: column;
     margin: 0;
     padding: 0;
-    min-height: 100%;
+    min-height: 100vh;
     background-color: #ECF0F3;
     padding: 0 .6rem;
     // background-color: #C4CFCF;
@@ -39,13 +41,14 @@
   }
 
   .todo-task {
+    display: flex;
+    align-items: center;
     border: 1px solid rgba(0, 0, 0, 0.41);
     border-radius: 7px;
     padding: 10px 35px;
     padding-right: 10px;
-    margin: 30px 100px;
-    display: flex;
-    align-items: center;
+    margin: 30px auto;
+    max-width: 650px;
   }
 
   .todo-content {
@@ -94,126 +97,71 @@
 </style>
 
 
-<nav class='navbar mb-6 py-3'>
-  <div class='container is-size-5'>
-    <div class='navbar-brand ml-1'>
-      <img src='./assets/bulma-logo.png' width='112' height='28'>
-    </div>
-    <div class='navbar-menu'>
-      <div class='navbar-start'>
-        <a class='navbar-item'>Home</a>
-        <a class='navbar-item'>Home</a>
-        <a class='navbar-item'>Home</a>
-      </div>
-      <div class='navbar-end'>
-        <a class='navbar-item'>Login</a>
-        <a class='navbar-item'>Login</a>
-        <a class='navbar-item'>Login</a>
-      </div>
-    </div>
-  </div>
-</nav>
-
-<p class='block'>
-  <router-link to='/login'>Go to Login Page</router-link>
-  <br>
-  <router-link to='/register'>Go to Registration Page</router-link>
-</p>
-
-<div class='container is-max-desktop has-background-white box-shadow block'>
-  <div class='section'>
-    <input type='hidden' name='id' value='0'>
-    <div class='field is-horizontal'>
-      <div class='field-label is-normal'>
-        <label for='input-todo-title' class='label'>Task Title</lable>
-      </div>
-      <div class='field-body'>
-        <div class='field is-expanded'>
-          <div class='control'>
-            <input class='input' id='input-todo-title' v-model="inputTodoTitle">
-          </div>
+<div class='is-flex-grow-1'>
+  <nav class='navbar mb-6 py-3'>
+    <div class='container is-size-5'>
+      <router-link to='/home' class='navbar-brand ml-1'>
+        <img src='./assets/bulma-logo.png' width='112' height='28'>
+      </router-link>
+      <div class='navbar-menu'>
+        <div class='navbar-start'>
+          <router-link to='/home' class='navbar-item'>Home</router-link>
+        </div>
+        <div v-if='!isLogged' class='navbar-end'>
+          <a class='navbar-item mr-4' href='https://github.com/yayolande'>
+            <span class='icon-text'>
+              <span class='icon'>
+                <i class='fa-brands fa-github'></i>
+              </span>
+              <span>Github</span>
+            </span>
+          </a>
+          <router-link to='/login' class='navbar-item'>Login</router-link>
+          <router-link to='/register' class='navbar-item'>Register</router-link>
+        </div>
+        <div v-else class='navbar-end is-align-items-center'>
+          <a class='navbar-item mr-4' href='https://github.com/yayolande'>
+            <span class='icon-text'>
+              <span class='icon'>
+                <i class='fa-brands fa-github'></i>
+              </span>
+              <span>Github</span>
+            </span>
+          </a>
+          <button class='navbar-item button is-danger is-rounded' @click.prevent='logout'>
+            <span class='icon'>
+              <i class='fas fa-right-from-bracket'></i>
+            </span>
+            <span>Log Out</span>
+          </button>
         </div>
       </div>
     </div>
+  </nav>
 
-    <div class='field is-horizontal'>
-      <div class='field-label is-normal'>
-        <label for='input-todo-date' class='label'>Date</label>
-      </div>
-      <div class='field-body'>
-        <div class='field'>
-          <div class='control'>
-            <input type='datetime-local' class='input' v-model="inputTodoDate">
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class='columns is-centered'>
-      <div class='column is-2'>
-        <button class='button is-primary is-rounded is-fullwidth' @click="createTodo">Create</button>
-      </div>
-      <div class='column is-2'>
-        <button class='button is-rounded is-fullwidth' @click='clearTodoFields'>Clear</button>
-      </div>
-    </div>
-  </div>
+  <router-view></router-view>
 </div>
 
-<div class='container is-max-desktop has-background-white box-shadow mb-6'>
-  <div class='section'>
-    <h1 class='title is-2 has-text-centered'>Upcoming Events</h1>
-    <hr>
-
-    <!--
-    <div class='todo-task'>
-      <div class='todo-content'>
-        <p class='todo-title'>Cleaning House With Soap</p>
-        <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
-      </div>
-      <div class='todo-right'>
-        <button class='icon is-large trash'>
-          <i class='fa fa-trash fa-xl'></i>
-        </button>
-        <button class='icon is-large completed'>
-          <i class='fa fa-check fa-xl'></i>
-        </button>
-      </div>
-    </div>
-    -->
-
-    <div :class='{ "todo-task-completed": todo.is_completed }' class='todo-task' v-for="todo in todos" :key="todo.id">
-      <input type='hidden' :value='todo.id'>
-      <div class='todo-content'>
-        <p class='todo-title'>{{ todo.title }}</p>
-        <p class='todo-subtitle'>{{ new Date (todo.date_epoch * 1000).toUTCString() }}</p>
-      </div>
-      <div class='todo-right'>
-        <button class='button is-outlined is-danger' v-on:click="el => deleteTodo(el, todo.id)">
-          <span class='icon'>
-            <i class='fa fa-trash'></i>
-          </span>
-        </button>
-        <button class='button is-outlined is-success' @click="updateTodo(todo)">
-          <span class='icon is-large'>
-            <i class='fa fa-check fa-xl'></i>
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<router-view></router-view>
-
+<footer class='footer has-background-black-ter has-text-white'>
+  <p class='content has-text-centered'>
+    Project made By
+    <a class='has-text-primary has-text-weight-bold is-underlined' href="https://github.com/yayolande">
+      Steve Djumo
+    </a>
+  </p>
+</footer>
 
 <script>
   let rootVueApp = {}
 
   const componentLogin = {
+    emits: ['user-token'],
+    inject: ['setUserToken'],
     data() {
       return {
-
+        inputUsername: '',
+        inputPassword: '',
+        isLoginError: false,
       }
     },
     template: `
@@ -227,7 +175,7 @@
               <div class='field-body'>
                 <div class='field'>
                   <div class='control is-expanded has-icons-left'>
-                    <input class='input' v-model='inputUsername' id='input-username' type='text' placeholder='Username'>
+                    <input class='input' v-model='inputUsername' ref='firstInput' id='input-username' type='text' placeholder='Username' required>
                     <span class='icon is-left'>
                       <i class='fas fa-user'></i>
                     </span>
@@ -244,7 +192,7 @@
               <div class='field-body'>
                 <div class='field'>
                   <div class='control is-expanded has-icons-left'>
-                    <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' />
+                    <input v-model='inputPassword' type='password' class='input' placeholder='Password' id='input-password' required />
                     <span class='icon is-left'>
                       <i class='fas fa-key'></i>
                     </span>
@@ -254,19 +202,61 @@
               </div>
             </div>
 
-            <button class='button is-primary is-fullwidth mt-5'>Login</button>
-            <p class='has-text-centered mt-1'>Don't have an account ? <a>Register Now</a></p>
+            <p v-if='isLoginError' class='has-text-centered has-background-danger has-text-white has-text-weight-bold py-2'>Username or Password Error</p>
+            <button class='button is-primary is-fullwidth mt-5' @click.prevent='login'>Login</button>
+            <p class='has-text-centered mt-1'>Don't have an account ? <router-link to='/register'>Register Now</router-link></p>
           </form>
         </div>
       </div>
     `,
+    methods: {
+      async login() {
+        const url = 'http://localhost:2200/api/v1/login'
+        const data = {
+          username: this.inputUsername,
+          password: this.inputPassword,
+        }
+
+        try {
+
+          let res = await fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          })
+
+          if (!res.ok) {
+            this.isLoginError = true
+            this.inputUsername = ''
+            this.inputPassword = ''
+            this.$refs.firstInput.focus()
+            console.log('ref first input: ', this.$refs)
+            console.log('Unexpected error while fetching data ...', res)
+            return
+          }
+
+          let answer = await res.json()
+          this.$emit('user-token', answer.token)
+          this.setUserToken(answer.token)
+
+          console.log('server response: ', answer)
+          console.log('server response (general): ', res)
+        } catch (error) {
+          console.log('Error while fetching data: ', error)
+          this.isLoginError = true
+        }
+      }
+
+    },
   }
 
   const componentRegistration = {
     data() {
       return {
-        inputUsername: 'Meriosa',
-        inputPassword: 'secret',
+        inputUsername: '',
+        inputPassword: '',
       }
     },
     template: `
@@ -315,45 +305,102 @@
     }
   }
 
-  routes = [
-    {path: '/login', component: componentLogin},
-    {path: '/register', component: componentRegistration},
-  ]
-
-  const router = VueRouter.createRouter({
-    history: VueRouter.createWebHashHistory(),
-    routes,
-  })
-
-  const pinia = Pinia.createPinia()
-
-  const useVarStore = Pinia.defineStore('var', {
-    state: () => ({count: 0, name: 'Eduardo'}),
-    getters: {
-      doubleCount(state) {return state.count * 2},
-    },
-    actions: {
-      increment() {
-        this.count++
-      },
-    },
-  })
-
-  const app = Vue.createApp({
-    components: {
-      'component-registration': componentRegistration,
-      'component-login': componentLogin,
-    },
+  const componentHome = {
+    inject: ['userToken', 'isLogged'],
     data() {
       return {
-        userToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I',
-        inputUsername: 'Memosa',
-        inputPassword: '',
+        // userToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I',
         inputTodoTitle: '',
         inputTodoDate: new Date().toISOString().split(".")[0],
         todos: [],
       }
     },
+    template:
+      `
+      <div class='container is-max-desktop has-background-white box-shadow block'>
+        <div class='section'>
+          <input type='hidden' name='id' value='0'>
+          <div class='field is-horizontal'>
+            <div class='field-label is-normal'>
+              <label for='input-todo-title' class='label'>Task Title</label>
+            </div>
+            <div class='field-body'>
+              <div class='field is-expanded'>
+                <div class='control'>
+                  <input class='input' id='input-todo-title' v-model="inputTodoTitle">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class='field is-horizontal'>
+            <div class='field-label is-normal'>
+              <label for='input-todo-date' class='label'>Date</label>
+            </div>
+            <div class='field-body'>
+              <div class='field'>
+                <div class='control'>
+                  <input type='datetime-local' class='input' v-model="inputTodoDate">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class='columns is-centered'>
+            <div class='column is-2'>
+              <button class='button is-primary is-rounded is-fullwidth' @click="createTodo">Create</button>
+            </div>
+            <div class='column is-2'>
+              <button class='button is-rounded is-fullwidth' @click='clearTodoFields'>Clear</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class='container is-max-desktop has-background-white box-shadow mb-6'>
+        <div class='section'>
+          <h1 class='title is-2 has-text-centered'>Upcoming Events</h1>
+          <hr>
+
+          <!--
+          <div class='todo-task'>
+            <div class='todo-content'>
+              <p class='todo-title'>Cleaning House With Soap</p>
+              <p class='todo-subtitle'>Thu. 05, Dec. 2023</p>
+            </div>
+            <div class='todo-right'>
+              <button class='icon is-large trash'>
+                <i class='fa fa-trash fa-xl'></i>
+              </button>
+              <button class='icon is-large completed'>
+                <i class='fa fa-check fa-xl'></i>
+              </button>
+            </div>
+          </div>
+          -->
+
+          <div :class='{ "todo-task-completed": todo.is_completed }' class='todo-task' v-for="todo in todos" :key="todo.id">
+            <input type='hidden' :value='todo.id'>
+            <div class='todo-content'>
+              <p class='todo-title'>{{ todo.title }}</p>
+              <p class='todo-subtitle'>{{ new Date (todo.date_epoch * 1000).toUTCString() }}</p>
+            </div>
+            <div class='todo-right'>
+              <button class='button is-outlined is-danger' v-on:click="el => deleteTodo(el, todo.id)">
+                <span class='icon'>
+                  <i class='fa fa-trash'></i>
+                </span>
+              </button>
+              <button class='button is-outlined is-success' @click="updateTodo(todo)">
+                <span class='icon is-large'>
+                  <i class='fa fa-check fa-xl'></i>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
     methods: {
       async deleteTodo(el, todoId) {
         console.log(`deleteTodo --> ${el}`, el)
@@ -431,13 +478,15 @@
         const url = `http://localhost:2200/api/v1/todo`
         let response = await fetch(url, {
           headers: {
-            Authorization: "BEARER eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I"
+            Authorization: `BEARER ${this.userToken}`
           }
         })
         let data = await response.json()
         this.todos = data.todos
 
         console.log(data)
+        console.log('fetch response: ', response)
+        console.log(`Authorization: "BEARER ${this.userToken}"`)
       },
     },
     async mounted() {
@@ -446,6 +495,103 @@
       this.fetchAllTodos()
 
       console.log('================ End mounted() hook ===============')
+    },
+  }
+
+  routes = [
+    {path: '/login', name: 'Login', component: componentLogin, meta: {requiresAuth: false}},
+    {path: '/register', name: 'Register', component: componentRegistration, meta: {requiresAuth: false}},
+    {path: '/home', name: 'Home', component: componentHome, meta: {requiresAuth: true}},
+    {paht: '/', redirect: '/home'}
+  ]
+
+  const router = VueRouter.createRouter({
+    history: VueRouter.createWebHashHistory(),
+    routes,
+  })
+
+  router.beforeEach((to, from) => {
+    console.log('router.beforeEach: istoken :', isRootUserTokenAvailable())
+    console.log('router.beforeEach: requiresAuth : ', to.meta.requiresAuth)
+
+    if (to.meta.requiresAuth && !isRootUserTokenAvailable()) {
+      return {name: 'Login'}
+    }
+    if (!to.meta.requiresAuth && isRootUserTokenAvailable()) {
+      return {name: 'Home'}
+    }
+
+    return true
+  })
+
+  const pinia = Pinia.createPinia()
+
+  const useVarStore = Pinia.defineStore('var', {
+    state: () => ({count: 0, name: 'Eduardo'}),
+    getters: {
+      doubleCount(state) {return state.count * 2},
+    },
+    actions: {
+      increment() {
+        this.count++
+      },
+    },
+  })
+
+  let rootUserToken = ''
+  let isRootUserTokenAvailable = () => rootUserToken !== ''
+
+  const app = Vue.createApp({
+    components: {
+      'component-registration': componentRegistration,
+      'component-login': componentLogin,
+      'component-home': componentHome,
+    },
+    data() {
+      return {
+        userToken: '',
+      }
+    },
+    methods: {
+      isUserLogged() {
+        return this.userToken !== ''
+      },
+      logout() {
+        this.userToken = ''
+        rootUserToken = ''
+        sessionStorage.removeItem('token')
+        this.$router.push('/login')
+      }
+    },
+    computed: {
+      isLogged() {
+        console.log('isUserLogged: ', isRootUserTokenAvailable())
+        return this.isUserLogged()
+      }
+    },
+    provide() {
+      let component = this
+
+      return {
+        "userToken": Vue.computed(() => (this.userToken)),
+        setUserToken: function (token) {
+          rootUserToken = token;
+          component.userToken = token
+
+          window.sessionStorage.setItem('token', token)
+          this.$router.push('/home')
+        },
+        isLogged: () => (this.userToken !== ""),
+      }
+    },
+    mounted() {
+      let token = window.sessionStorage.getItem('token')
+      if (token === null || token === undefined)
+        token = ''
+
+      this.userToken = token
+      rootUserToken = token
+      console.log('root component :', this)
     },
     setup() {
       // const varStore = useVarStore()
